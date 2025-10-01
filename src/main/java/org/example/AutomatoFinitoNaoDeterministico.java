@@ -43,8 +43,22 @@ public class AutomatoFinitoNaoDeterministico {
         List<Transicoes> novas = new ArrayList<>();
         for (String d : destinos) {
             if (!origens.contains(d)) {
+
                 for (String a : alfabeto) {
-                    novas.add(new Transicoes(d, a, null));
+                    String[] origensParaVerificarDestino = d.split(",");
+                    String novoDestino = "";
+                    for (String origen : origensParaVerificarDestino) {
+                        for (Transicoes t : transicoes) {
+                            if (origen.equals(t.getEstadoOrigem())) {
+                                if (a.equals(t.getSimbolo())) {
+                                    novoDestino += t.getEstadoDestino().replace(",", "");
+                                }
+                            }
+                        }
+                    }
+
+
+                    novas.add(new Transicoes(d, a, novoDestino));
                 }
             }
         }

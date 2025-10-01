@@ -1,6 +1,9 @@
+// Pacote e imports
 package org.example;
 
-public class Transicoes {
+import java.util.*;
+
+class Transicoes {
     private String estadoOrigem;
     private String simbolo;
     private String estadoDestino;
@@ -10,14 +13,13 @@ public class Transicoes {
         this.simbolo = simbolo;
         this.estadoDestino = estadoDestino;
     }
-    public String getSimbolo() {
-        return simbolo;
-    }
-    public String getEstadoOrigem() {
-        return estadoOrigem;
-    }
-    public String getEstadoDestino() {
-        return estadoDestino;
-    }
 
+    public String getEstadoOrigem() { return estadoOrigem; }
+    public String getSimbolo() { return simbolo; }
+    public String getEstadoDestino() { return estadoDestino; }
+
+    @Override
+    public String toString() {
+        return String.format("(%s, %s) -> %s", estadoOrigem, simbolo, estadoDestino);
+    }
 }
