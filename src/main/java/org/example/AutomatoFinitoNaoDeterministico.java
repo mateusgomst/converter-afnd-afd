@@ -1,19 +1,17 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AutomatoFinitoNaoDeterministico {
     private Set<String> alfabeto;
     private Set<String> estados;
     private String estadoInicial;
     private Set<String> estadosFinais;
-    private List<Transicoes> transicoes;
+    private List<Transicao> transicoes;
 
-
-    public AutomatoFinitoNaoDeterministico(Set<String> alfabeto, Set<String> estados, String estadoInicial, Set<String> estadosFinais, List<Transicoes> transicoes) {
+    public AutomatoFinitoNaoDeterministico(Set<String> alfabeto, Set<String> estados,
+                                           String estadoInicial, Set<String> estadosFinais,
+                                           List<Transicao> transicoes) {
         this.alfabeto = alfabeto;
         this.estados = estados;
         this.estadoInicial = estadoInicial;
@@ -21,72 +19,75 @@ public class AutomatoFinitoNaoDeterministico {
         this.transicoes = transicoes;
     }
 
-    public List<Transicoes> converterParaAfd(AutomatoFinitoNaoDeterministico afnd) {
+    public AutomatoFinitoDeterministico converterParaAfd() {
+        Map<Set<String>, String> mapaNomesEstados = new HashMap<>();
+        List<Transicao> novasTransicoes = new ArrayList<>();
+        Set<Set<String>> novosEstados = new HashSet<>();
+        Queue<Set<String>> fila = new LinkedList<>();
 
-        Set<String> estados = afnd.getEstados();
-        List<Transicoes> transicoes = afnd.getTransicoes();
-        Set<String> alfabeto = afnd.getAlfabeto();
+        // Estado inicial
+        Set<String> estadoInicialSet = new HashSet<>();
+        estadoInicialSet.add(estadoInicial);
+        fila.add(estadoInicialSet);
+        novosEstados.add(estadoInicialSet);
+        mapaNomesEstados.put(estadoInicialSet, "Q0");
 
-        //Descobre todos os estados que já são origem
-        Set<String> origens = new HashSet<>();
-        for (Transicoes t : transicoes) {
-            origens.add(t.getEstadoOrigem());
-        }
+        int contador = 1;
 
-        //Descobre todos os estados que são destino
-        Set<String> destinos = new HashSet<>();
-        for (Transicoes t : transicoes) {
-            destinos.add(t.getEstadoDestino());
-        }
+        while (!fila.isEmpty()) {
+            Set<String> atual = fila.poll();
+            String nomeAtual = mapaNomesEstados.get(atual);
 
-        //Para cada estado que é destino mas não é origem, cria novas transições
-        List<Transicoes> novas = new ArrayList<>();
-        for (String d : destinos) {
-            if (!origens.contains(d)) {
+            for (String simbolo : alfabeto) {
+                Set<String> destino = new HashSet<>();
 
-                for (String a : alfabeto) {
-                    String[] origensParaVerificarDestino = d.split(",");
-                    String novoDestino = "";
-                    for (String origen : origensParaVerificarDestino) {
-                        for (Transicoes t : transicoes) {
-                            if (origen.equals(t.getEstadoOrigem())) {
-                                if (a.equals(t.getSimbolo())) {
-                                    novoDestino += t.getEstadoDestino().replace(",", "");
-                                }
+                // Para cada estado do conjunto atual
+                for (String e : atual) {
+                    for (Transicao t : transicoes) {
+                        if (t.getOrigem().equals(e) && t.getSimbolo().equals(simbolo)) {
+                            // limpa chaves { } e espaços
+                            String destinoLimpo = t.getDestino().replace("{", "").replace("}", "").trim();
+                            String[] destinos = destinoLimpo.split(",");
+                            for (String d : destinos) {
+                                destino.add(d.trim());
                             }
                         }
                     }
+                }
 
+                if (!destino.isEmpty()) {
+                    if (!mapaNomesEstados.containsKey(destino)) {
+                        mapaNomesEstados.put(destino, "Q" + contador++);
+                        fila.add(destino);
+                        novosEstados.add(destino);
+                    }
 
-                    novas.add(new Transicoes(d, a, novoDestino));
+                    String nomeDestino = mapaNomesEstados.get(destino);
+                    novasTransicoes.add(new Transicao(nomeAtual, simbolo, nomeDestino));
                 }
             }
         }
 
-        transicoes.addAll(novas);
+        // Define estados finais do AFD
+        Set<String> novosFinais = new HashSet<>();
+        for (Set<String> conjunto : novosEstados) {
+            for (String e : conjunto) {
+                if (estadosFinais.contains(e)) {
+                    novosFinais.add(mapaNomesEstados.get(conjunto));
+                    break;
+                }
+            }
+        }
 
-
-        return transicoes;
+        return new AutomatoFinitoDeterministico(
+                alfabeto,
+                new HashSet<>(mapaNomesEstados.values()),
+                "Q0",
+                novosFinais,
+                novasTransicoes
+        );
     }
 
-    public List<Transicoes> getTransicoes() {
-        return transicoes;
-    }
 
-    public Set<String> getAlfabeto() {
-        return alfabeto;
-    }
-
-    public Set<String> getEstados() {
-        return estados;
-    }
-
-    public Set<String> getEstadosFinais() {
-        return estadosFinais;
-    }
-
-    public String getEstadoInicial() {
-        return estadoInicial;
-    }
+    public List<Transicao> getTransicoes() { return transicoes; }
 }
-

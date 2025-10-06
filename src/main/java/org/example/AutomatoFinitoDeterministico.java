@@ -8,9 +8,11 @@ public class AutomatoFinitoDeterministico {
     private Set<String> estados;
     private String estadoInicial;
     private Set<String> estadosFinais;
-    private List<Transicoes> transicoes;
+    private List<Transicao> transicoes;
 
-    public AutomatoFinitoDeterministico(Set<String> alfabeto, Set<String> estados, String estadoInicial, Set<String> estadosFinais, List<Transicoes> transicoes) {
+    public AutomatoFinitoDeterministico(Set<String> alfabeto, Set<String> estados,
+                                        String estadoInicial, Set<String> estadosFinais,
+                                        List<Transicao> transicoes) {
         this.alfabeto = alfabeto;
         this.estados = estados;
         this.estadoInicial = estadoInicial;
@@ -19,15 +21,12 @@ public class AutomatoFinitoDeterministico {
     }
 
     public void imprimir() {
-        System.out.println("--- AFD Resultante ---");
-        System.out.println("Alfabeto: " + alfabeto);
         System.out.println("Estados: " + estados);
-        System.out.println("Estado Inicial: " + estadoInicial);
-        System.out.println("Estados Finais: " + estadosFinais);
+        System.out.println("Inicial: " + estadoInicial);
+        System.out.println("Finais: " + estadosFinais);
         System.out.println("Transições:");
-        for (Transicoes t : transicoes) {
+        for (Transicao t : transicoes) {
             System.out.println("  " + t);
         }
-        System.out.println("----------------------");
     }
 }
