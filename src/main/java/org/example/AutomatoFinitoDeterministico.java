@@ -24,6 +24,8 @@ public class AutomatoFinitoDeterministico {
         System.out.println("Estados: " + estados);
         System.out.println("Inicial: " + estadoInicial);
         System.out.println("Finais: " + estadosFinais);
+        System.out.println("Alfabeto: " + alfabeto);
+
         System.out.println("Transições:");
         for (Transicao t : transicoes) {
             System.out.println("  " + t);

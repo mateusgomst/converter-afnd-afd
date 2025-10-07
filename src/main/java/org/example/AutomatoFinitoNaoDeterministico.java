@@ -30,64 +30,81 @@ public class AutomatoFinitoNaoDeterministico {
         estadoInicialSet.add(estadoInicial);
         fila.add(estadoInicialSet);
         novosEstados.add(estadoInicialSet);
-        mapaNomesEstados.put(estadoInicialSet, "Q0");
+        mapaNomesEstados.put(estadoInicialSet, gerarNomeEstado(estadoInicialSet));
 
-        int contador = 1;
+        int contador = 0;
 
         while (!fila.isEmpty()) {
-            Set<String> atual = fila.poll();
-            String nomeAtual = mapaNomesEstados.get(atual);
+            Set<String> estadoAtual = fila.poll();
+            String nomeEstadoAtual = mapaNomesEstados.get(estadoAtual);
 
             for (String simbolo : alfabeto) {
-                Set<String> destino = new HashSet<>();
+                if (simbolo.equals("ε")) continue;
 
-                // Para cada estado do conjunto atual
-                for (String e : atual) {
-                    for (Transicao t : transicoes) {
-                        if (t.getOrigem().equals(e) && t.getSimbolo().equals(simbolo)) {
-                            // limpa chaves { } e espaços
-                            String destinoLimpo = t.getDestino().replace("{", "").replace("}", "").trim();
-                            String[] destinos = destinoLimpo.split(",");
-                            for (String d : destinos) {
-                                destino.add(d.trim());
-                            }
+                Set<String> proximoEstado = new HashSet<>();
+
+                // Para cada estado no conjunto atual, encontrar todos os destinos
+                for (String estado : estadoAtual) {
+                    for (Transicao transicao : transicoes) {
+                        if (transicao.getOrigem().equals(estado) &&
+                                transicao.getSimbolo().equals(simbolo)) {
+                            proximoEstado.add(transicao.getDestino());
                         }
                     }
                 }
 
-                if (!destino.isEmpty()) {
-                    if (!mapaNomesEstados.containsKey(destino)) {
-                        mapaNomesEstados.put(destino, "Q" + contador++);
-                        fila.add(destino);
-                        novosEstados.add(destino);
-                    }
-
-                    String nomeDestino = mapaNomesEstados.get(destino);
-                    novasTransicoes.add(new Transicao(nomeAtual, simbolo, nomeDestino));
+                // Se não há transição, vai para estado morto
+                if (proximoEstado.isEmpty()) {
+                    proximoEstado.add("vazio");
                 }
+
+                // Se é um novo estado, adicionar na fila
+                if (!novosEstados.contains(proximoEstado)) {
+                    novosEstados.add(proximoEstado);
+                    mapaNomesEstados.put(proximoEstado, gerarNomeEstado(proximoEstado));
+                    fila.add(proximoEstado);
+                }
+
+                String nomeProximoEstado = mapaNomesEstados.get(proximoEstado);
+                novasTransicoes.add(new Transicao(nomeEstadoAtual, simbolo, nomeProximoEstado));
             }
         }
 
-        // Define estados finais do AFD
-        Set<String> novosFinais = new HashSet<>();
-        for (Set<String> conjunto : novosEstados) {
-            for (String e : conjunto) {
-                if (estadosFinais.contains(e)) {
-                    novosFinais.add(mapaNomesEstados.get(conjunto));
+        // Definir estados finais
+        Set<String> novosEstadosFinais = new HashSet<>();
+        for (Set<String> conjuntoEstado : novosEstados) {
+            for (String estado : conjuntoEstado) {
+                if (estadosFinais.contains(estado) && !estado.equals("vazio")) {
+                    novosEstadosFinais.add(mapaNomesEstados.get(conjuntoEstado));
                     break;
                 }
             }
         }
 
+        // Coletar todos os nomes de estados do AFD
+        Set<String> nomesEstadosAfd = new HashSet<>(mapaNomesEstados.values());
+
         return new AutomatoFinitoDeterministico(
                 alfabeto,
-                new HashSet<>(mapaNomesEstados.values()),
-                "Q0",
-                novosFinais,
+                nomesEstadosAfd,
+                mapaNomesEstados.get(Collections.singleton(estadoInicial)),
+                novosEstadosFinais,
                 novasTransicoes
         );
     }
 
+    private String gerarNomeEstado(Set<String> estados) {
+        if (estados.contains("vazio")) {
+            return "vazio";
+        }
 
-    public List<Transicao> getTransicoes() { return transicoes; }
+        List<String> estadosOrdenados = new ArrayList<>(estados);
+        Collections.sort(estadosOrdenados);
+
+        if (estadosOrdenados.size() == 1) {
+            return "{" + estadosOrdenados.get(0) + "}";
+        } else {
+            return "{" + String.join(",", estadosOrdenados) + "}";
+        }
+    }
 }
